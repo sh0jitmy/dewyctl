@@ -1,0 +1,100 @@
+name: Build, Release and Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch tags
+        run: git fetch --force --tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Install SOPS
+        run: |
+          SOPS_VER="3.8.1"
+          curl -LO "https://github.com/getsops/sops/releases/download/v${SOPS_VER}/sops_${SOPS_VER}_amd64.deb"
+          sudo dpkg -i sops_${SOPS_VER}_amd64.deb
+
+      - name: Determine Release Version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build dewyctl CLI
+        run: go build -o bin/dewyctl .
+
+      - name: Publish Multi-Platform Release to S3 via dewyctl
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./bin/dewyctl release --version "${{ steps.ver.outputs.tag }}"
+
+  deploy-test:
+    name: Test Ansible Deploy & E2E Validation
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Install Ansible & SOPS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+          SOPS_VER="3.8.1"
+          curl -LO "https://github.com/getsops/sops/releases/download/v${SOPS_VER}/sops_${SOPS_VER}_amd64.deb"
+          sudo dpkg -i sops_${SOPS_VER}_amd64.deb
+
+      - name: Determine Release Version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build dewyctl CLI
+        run: go build -o bin/dewyctl .
+
+      - name: Run Docker E2E Verification via dewyctl
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |
+          ./bin/dewyctl docker all --version "${{ steps.ver.outputs.tag }}"

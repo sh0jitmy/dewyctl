@@ -1,0 +1,29 @@
+---
+- name: Ensure deployment base directory exists
+  file:
+    path: "{{ app_binary_dest_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Write environment file for Dewy binary mode
+  template:
+    src: dewy-binary.env.j2
+    dest: "/etc/dewy-binary.env"
+    mode: '0600'
+  notify: Restart dewy-binary
+
+- name: Create systemd unit file for Dewy binary mode
+  template:
+    src: dewy-binary.service.j2
+    dest: "/etc/systemd/system/dewy-binary.service"
+    mode: '0644'
+  notify: Restart dewy-binary
+
+- name: Force systemd handler to apply config changes
+  meta: flush_handlers
+
+- name: Enable and start dewy-binary service
+  systemd:
+    name: dewy-binary
+    enabled: yes
+    state: started

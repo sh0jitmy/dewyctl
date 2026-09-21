@@ -1,0 +1,53 @@
+---
+- name: Install Docker prerequisites (Ubuntu/Debian)
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install Docker (Ubuntu/Debian)
+  apt:
+    name: docker.io
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Ensure Docker service is running and enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Log into GHCR
+  shell: echo "{{ github_token }}" | docker login ghcr.io -u "{{ github_owner }}" --password-stdin
+  when: github_token is defined and github_token | length > 0
+  changed_when: false
+  no_log: true
+
+- name: Write environment file for Dewy container mode
+  template:
+    src: dewy-container.env.j2
+    dest: "/etc/dewy-container.env"
+    mode: '0600'
+  notify: Restart dewy-container
+
+- name: Create systemd unit file for Dewy container mode
+  template:
+    src: dewy-container.service.j2
+    dest: "/etc/systemd/system/dewy-container.service"
+    mode: '0644'
+  notify: Restart dewy-container
+
+- name: Force systemd handler to apply config changes
+  meta: flush_handlers
+
+- name: Enable and start dewy-container service
+  systemd:
+    name: dewy-container
+    enabled: yes
+    state: started

@@ -1,0 +1,7 @@
+---
+- name: Deploy app in binary mode using Dewy
+  hosts: targets
+  become: yes
+  roles:
+    - dewy
+    - dewy-binary

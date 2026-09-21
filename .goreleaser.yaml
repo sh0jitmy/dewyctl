@@ -1,0 +1,61 @@
+# GoReleaser Configuration
+# Design: Generic and reusable. Uses environment variables to parameterize S3 upload.
+
+version: 2
+
+project_name: dewy-app
+
+before:
+  hooks:
+    - go mod tidy -C app
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    main: ./app
+    binary: dewy-app
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    # Exclude source code files from the archive, just include the binary
+    files:
+      - none*
+
+# Upload archives to S3 (Sakura Object Storage)
+blobs:
+  - provider: s3
+    # Environment variables are resolved at runtime in CI
+    bucket: "{{ .Env.S3_BUCKET }}"
+    region: "{{ .Env.S3_REGION }}"
+    endpoint: "{{ .Env.S3_ENDPOINT }}"
+    # Dewy S3 registry path convention: <prefix>/<semver>/<artifact>
+    directory: "app/{{ .Tag }}"
+    # Match the builds id
+    ids:
+      - default
+
+# Build and push container images to GHCR
+dockers:
+  - image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY }}:latest"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY }}:{{ .Tag }}"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY }}:v{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+    dockerfile: Dockerfile
+    use: docker
+    build_flag_templates:
+      - "--build-arg=BINARY_NAME={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.GITHUB_REPOSITORY }}"
+    # We want to build Docker images only for Linux AMD64
+    goos: linux
+    goarch: amd64

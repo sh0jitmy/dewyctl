@@ -1,0 +1,52 @@
+---
+- name: Set architecture variable
+  set_fact:
+    dewy_arch: "{{ 'x86_64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'arm64' }}"
+
+- name: Check if Dewy is installed
+  stat:
+    path: /usr/local/bin/dewy
+  register: dewy_bin
+
+- name: Check installed Dewy version
+  command: /usr/local/bin/dewy --version
+  register: dewy_version_check
+  failed_when: false
+  changed_when: false
+  when: dewy_bin.stat.exists
+
+- name: Install Dewy if not present or version mismatch
+  block:
+    - name: Create temporary directory
+      tempfile:
+        state: directory
+        suffix: dewy
+      register: temp_dir
+
+    - name: Download Dewy archive
+      get_url:
+        url: "https://github.com/linyows/dewy/releases/download/v{{ dewy_version }}/dewy_linux_{{ dewy_arch }}.tar.gz"
+        dest: "{{ temp_dir.path }}/dewy.tar.gz"
+        mode: '0644'
+
+    - name: Extract Dewy archive
+      unarchive:
+        src: "{{ temp_dir.path }}/dewy.tar.gz"
+        dest: "{{ temp_dir.path }}"
+        remote_src: yes
+
+    - name: Install Dewy binary to /usr/local/bin
+      copy:
+        src: "{{ temp_dir.path }}/dewy"
+        dest: /usr/local/bin/dewy
+        mode: '0755'
+        remote_src: yes
+
+    - name: Clean up temporary directory
+      file:
+        path: "{{ temp_dir.path }}"
+        state: absent
+  when: >
+    not dewy_bin.stat.exists or
+    dewy_version_check.stdout is not defined or
+    dewy_version not in dewy_version_check.stdout
