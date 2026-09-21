@@ -23,7 +23,6 @@
 
 # Local run/work directories
 /.dewy/
-/run.sh
 
 # IDE and OS files
 .DS_Store
