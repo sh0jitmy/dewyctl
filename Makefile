@@ -1,6 +1,6 @@
 # Makefile for Dewy Deployment Template
 
-.PHONY: help build run test lint vulncheck check docker-build sops-encrypt sops-decrypt sops-edit test-local-deploy deploy-prod clean dewyctl dewyctl-test dewyctl-server dewyctl-doctor install
+.PHONY: help build run test lint vulncheck check pinact pinact-check docker-build sops-encrypt sops-decrypt sops-edit test-local-deploy deploy-prod clean dewyctl dewyctl-test dewyctl-server dewyctl-doctor install
 
 # Configuration
 KEY_FILE = key.txt
@@ -15,7 +15,9 @@ help:
 	@echo "  test                Run all Go unit tests (dewyctl & sample app)"
 	@echo "  lint                Run golangci-lint on dewyctl and sample app"
 	@echo "  vulncheck           Run govulncheck security analysis"
-	@echo "  check               Run test, lint, and vulncheck all together"
+	@echo "  pinact              Pin GitHub Actions versions with SHA hashes"
+	@echo "  pinact-check        Verify that all GitHub Actions are pinned"
+	@echo "  check               Run test, lint, vulncheck, and pinact-check all together"
 	@echo "  dewyctl-test        Run automated E2E zero-downtime test with dewyctl"
 	@echo "  dewyctl-server      Launch Dewy server locally with dewyctl"
 	@echo "  dewyctl-doctor      Run dewyctl diagnostic"
@@ -71,8 +73,20 @@ vulncheck:
 	govulncheck -C app ./...
 	@echo "==> Vulnerability check passed!"
 
-check: test lint vulncheck
-	@echo "==> All checks (test, lint, vulncheck) passed!"
+pinact:
+	@echo "==> Pinning GitHub Actions versions..."
+	@which pinact >/dev/null 2>&1 || (echo "pinact not found. Install via: brew install pinact or go install github.com/suzuki-shunsuke/pinact/cmd/pinact@latest" && exit 1)
+	pinact run
+	@echo "==> GitHub Actions pinned successfully!"
+
+pinact-check:
+	@echo "==> Checking if all GitHub Actions are pinned..."
+	@which pinact >/dev/null 2>&1 || (echo "pinact not found. Install via: brew install pinact or go install github.com/suzuki-shunsuke/pinact/cmd/pinact@latest" && exit 1)
+	pinact run --check
+	@echo "==> All GitHub Actions are properly pinned!"
+
+check: test lint vulncheck pinact-check
+	@echo "==> All checks (test, lint, vulncheck, pinact-check) passed!"
 
 docker-build:
 	docker build -t ghcr.io/user/dewy-practice:latest .
