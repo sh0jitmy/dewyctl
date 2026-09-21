@@ -29,6 +29,3 @@
 .DS_Store
 .idea/
 .vscode/
-
-# Go files
-/app/go.sum

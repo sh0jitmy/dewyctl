@@ -1,4 +1,4 @@
-module github.com/user/dewy-practice/app
+module github.com/sh0jitmy/dewyctl/app
 
 go 1.21
 
