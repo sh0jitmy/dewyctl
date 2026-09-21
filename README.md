@@ -1,6 +1,7 @@
 # Dewy Deployment Boilerplate & Toolkit
 
-[![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![Go](https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Ansible](https://img.shields.io/badge/Ansible-Automation-EE0000?style=flat&logo=ansible)](https://www.ansible.com/)
 [![SOPS](https://img.shields.io/badge/SOPS-Encrypted-blue?style=flat)](https://github.com/getsops/sops)
 [![tagpr](https://img.shields.io/badge/tagpr-Automated_Release-orange?style=flat)](https://github.com/Songmu/tagpr)
@@ -415,4 +416,4 @@ GitHub Actions CI (`.github/workflows/ci.yml`) では、PR 作成時および `m
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [Apache License 2.0](LICENSE).
