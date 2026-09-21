@@ -50,19 +50,19 @@ func RunRelease(args []string) error {
 
 	// Set process environment for child tools
 	if accessKey != "" {
-		os.Setenv("AWS_ACCESS_KEY_ID", accessKey)
+		_ = os.Setenv("AWS_ACCESS_KEY_ID", accessKey)
 	}
 	if secretKey != "" {
-		os.Setenv("AWS_SECRET_ACCESS_KEY", secretKey)
+		_ = os.Setenv("AWS_SECRET_ACCESS_KEY", secretKey)
 	}
 	if bucket != "" {
-		os.Setenv("S3_BUCKET", bucket)
+		_ = os.Setenv("S3_BUCKET", bucket)
 	}
 	if endpoint != "" {
-		os.Setenv("S3_ENDPOINT", endpoint)
+		_ = os.Setenv("S3_ENDPOINT", endpoint)
 	}
 	if region != "" {
-		os.Setenv("S3_REGION", region)
+		_ = os.Setenv("S3_REGION", region)
 	}
 
 	// 2. Check if GoReleaser is available

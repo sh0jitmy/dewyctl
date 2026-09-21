@@ -66,7 +66,7 @@ func RunDoctor(args []string) error {
 	if err != nil {
 		check("S3 Connectivity", false, fmt.Sprintf("Failed to reach %s: %v", endpoint, err))
 	} else {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		check("S3 Connectivity", true, fmt.Sprintf("Successfully connected to %s (Status: %d)", endpoint, resp.StatusCode))
 	}
 

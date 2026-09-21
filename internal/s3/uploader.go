@@ -51,28 +51,18 @@ func UploadArtifact(ctx context.Context, opts UploadOptions) error {
 		return fmt.Errorf("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required")
 	}
 
-	// Custom resolver for S3 endpoint (e.g. Sakura Object Storage or MinIO)
-	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-		if opts.Endpoint != "" {
-			return aws.Endpoint{
-				URL:               opts.Endpoint,
-				SigningRegion:     opts.Region,
-				HostnameImmutable: true,
-			}, nil
-		}
-		return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-	})
-
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion(opts.Region),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(opts.AccessKeyID, opts.SecretAccessKey, "")),
-		config.WithEndpointResolverWithOptions(customResolver),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to load AWS config: %w", err)
 	}
 
 	client := s3service.NewFromConfig(cfg, func(o *s3service.Options) {
+		if opts.Endpoint != "" {
+			o.BaseEndpoint = aws.String(opts.Endpoint)
+		}
 		// Sakura Object Storage and MinIO typically work best with path-style
 		o.UsePathStyle = true
 	})
@@ -106,24 +96,18 @@ func CheckBucketAccess(ctx context.Context, opts UploadOptions) error {
 		opts.Endpoint = "https://s3.tky01.sakurastorage.jp"
 	}
 
-	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-		return aws.Endpoint{
-			URL:               opts.Endpoint,
-			SigningRegion:     opts.Region,
-			HostnameImmutable: true,
-		}, nil
-	})
-
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion(opts.Region),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(opts.AccessKeyID, opts.SecretAccessKey, "")),
-		config.WithEndpointResolverWithOptions(customResolver),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to load AWS config: %w", err)
 	}
 
 	client := s3service.NewFromConfig(cfg, func(o *s3service.Options) {
+		if opts.Endpoint != "" {
+			o.BaseEndpoint = aws.String(opts.Endpoint)
+		}
 		o.UsePathStyle = true
 	})
 

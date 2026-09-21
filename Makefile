@@ -1,6 +1,6 @@
 # Makefile for Dewy Deployment Template
 
-.PHONY: help build run test docker-build sops-encrypt sops-decrypt sops-edit test-local-deploy deploy-prod clean dewyctl dewyctl-doctor
+.PHONY: help build run test lint vulncheck check docker-build sops-encrypt sops-decrypt sops-edit test-local-deploy deploy-prod clean dewyctl dewyctl-test dewyctl-server dewyctl-doctor install
 
 # Configuration
 KEY_FILE = key.txt
@@ -12,11 +12,14 @@ help:
 	@echo "  build               Build Go application binary"
 	@echo "  dewyctl             Build dewyctl CLI tool to bin/dewyctl"
 	@echo "  install             Install dewyctl to GOPATH/bin (go install .)"
+	@echo "  test                Run all Go unit tests (dewyctl & sample app)"
+	@echo "  lint                Run golangci-lint on dewyctl and sample app"
+	@echo "  vulncheck           Run govulncheck security analysis"
+	@echo "  check               Run test, lint, and vulncheck all together"
 	@echo "  dewyctl-test        Run automated E2E zero-downtime test with dewyctl"
 	@echo "  dewyctl-server      Launch Dewy server locally with dewyctl"
 	@echo "  dewyctl-doctor      Run dewyctl diagnostic"
 	@echo "  run                 Run Go application locally (fallback mode)"
-	@echo "  test                Run Go unit tests"
 	@echo "  docker-build        Build local Docker image"
 	@echo "  sops-encrypt        Encrypt $(DECRYPTED_SECRETS) to $(ENCRYPTED_SECRETS)"
 	@echo "  sops-decrypt        Decrypt $(ENCRYPTED_SECRETS) to $(DECRYPTED_SECRETS)"
@@ -47,7 +50,29 @@ run: build
 	./app/dewy-app --port 8080
 
 test:
+	@echo "==> Running unit tests for dewyctl..."
+	go test -v ./...
+	@echo "==> Running unit tests for sample app..."
 	go test -C app -v ./...
+
+lint:
+	@echo "==> Running golangci-lint for dewyctl..."
+	@which golangci-lint >/dev/null 2>&1 || (echo "golangci-lint not found. Install via: brew install golangci-lint or go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest" && exit 1)
+	golangci-lint run ./...
+	@echo "==> Running golangci-lint for sample app..."
+	(cd app && golangci-lint run ./...)
+	@echo "==> Lint check passed!"
+
+vulncheck:
+	@echo "==> Running govulncheck for dewyctl..."
+	@which govulncheck >/dev/null 2>&1 || (echo "govulncheck not found. Install via: go install golang.org/x/vuln/cmd/govulncheck@latest" && exit 1)
+	govulncheck ./...
+	@echo "==> Running govulncheck for sample app..."
+	govulncheck -C app ./...
+	@echo "==> Vulnerability check passed!"
+
+check: test lint vulncheck
+	@echo "==> All checks (test, lint, vulncheck) passed!"
 
 docker-build:
 	docker build -t ghcr.io/user/dewy-practice:latest .

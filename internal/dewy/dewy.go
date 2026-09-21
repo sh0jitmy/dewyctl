@@ -70,7 +70,7 @@ func EnsureDewyInstalled(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to download dewy from %s: %w", downloadURL, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("failed to download dewy (HTTP %d): %s", resp.StatusCode, downloadURL)
@@ -81,7 +81,7 @@ func EnsureDewyInstalled(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read gzip archive: %w", err)
 	}
-	defer gzr.Close()
+	defer func() { _ = gzr.Close() }()
 
 	tr := tar.NewReader(gzr)
 	found := false
@@ -102,10 +102,10 @@ func EnsureDewyInstalled(ctx context.Context) (string, error) {
 				return "", fmt.Errorf("failed to create binary file %s: %w", localDewy, err)
 			}
 			if _, err := io.Copy(outFile, tr); err != nil {
-				outFile.Close()
+				_ = outFile.Close()
 				return "", fmt.Errorf("failed to extract binary: %w", err)
 			}
-			outFile.Close()
+			_ = outFile.Close()
 			found = true
 			break
 		}

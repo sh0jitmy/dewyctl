@@ -109,9 +109,9 @@ func RunPush(args []string) error {
 	}
 
 	// Ensure AWS SDK picks up the resolved credentials
-	os.Setenv("AWS_ACCESS_KEY_ID", accessKey)
-	os.Setenv("AWS_SECRET_ACCESS_KEY", secretKey)
-	os.Setenv("AWS_DEFAULT_REGION", finalRegion)
+	_ = os.Setenv("AWS_ACCESS_KEY_ID", accessKey)
+	_ = os.Setenv("AWS_SECRET_ACCESS_KEY", secretKey)
+	_ = os.Setenv("AWS_DEFAULT_REGION", finalRegion)
 
 	// Determine target platforms to build
 	var platforms []builder.Platform

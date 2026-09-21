@@ -75,7 +75,7 @@ func BuildAndArchive(opts BuildOptions) ([]byte, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create temp dir: %w", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	binaryPath := filepath.Join(tempDir, opts.AppName)
 

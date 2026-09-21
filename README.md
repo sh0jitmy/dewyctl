@@ -371,10 +371,32 @@ dewyctl/
 │   ├── tagpr.yml                  # tagpr 自動リリース ＋ S3 PUT ＋ E2E 検証
 │   └── deploy.yml                 # 手動タグ・手動トリガー用リリース & デプロイ検証
 ├── run.sh                         # ワンクリック運用ランチャー (自動ビルド付き)
-├── Makefile                       # ビルド・インストール補助 Makefile
+├── Makefile                       # ビルド・テスト・品質チェック補助 Makefile
 ├── key.txt                        # age 非公開鍵 (.gitignore で除外)
 └── secrets.enc.yml                # SOPS 暗号化シークレット (Git 管理可能)
 ```
+
+---
+
+## 🛠 開発・テスト & 品質チェック
+
+本リポジトリではコードの品質保証とセキュリティ維持のため、テスト、静的解析 (Lint)、脆弱性診断 (govulncheck) を Makefile および GitHub Actions CI に標準組み込みしています。
+
+```bash
+# 全ユニットテストの実行 (dewyctl & sample app)
+make test
+
+# golangci-lint による静的解析
+make lint
+
+# govulncheck による依存関係脆弱性スキャン
+make vulncheck
+
+# 上記 3 つ (test, lint, vulncheck) を一括実行
+make check
+```
+
+GitHub Actions CI (`.github/workflows/ci.yml`) では、PR 作成時および `main` ブランチへの push 時にこれらすべてのチェックが自動実行されます。
 
 ---
 

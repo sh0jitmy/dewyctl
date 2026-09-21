@@ -95,11 +95,11 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 	}
 	hostname, _ := os.Hostname()
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	fmt.Fprintf(w, "Hello from Dewy App!\nVersion: %s\nHostname: %s\nTime: %s\n", Version, hostname, time.Now().Format(time.RFC3339))
+	_, _ = fmt.Fprintf(w, "Hello from Dewy App!\nVersion: %s\nHostname: %s\nTime: %s\n", Version, hostname, time.Now().Format(time.RFC3339))
 }
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"ok"}`))
+	_, _ = w.Write([]byte(`{"status":"ok"}`))
 }

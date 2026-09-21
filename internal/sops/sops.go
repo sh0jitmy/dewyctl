@@ -99,7 +99,7 @@ func EnsureGitignoreEntries(entries []string) error {
 		if err != nil {
 			return err
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 
 		for _, item := range toAdd {
 			if _, err := f.WriteString(item + "\n"); err != nil {
@@ -121,7 +121,7 @@ func EncryptTemplate(keyFilePath, encPath, plainContent string) error {
 	if err := os.WriteFile(tempFile, []byte(plainContent), 0600); err != nil {
 		return fmt.Errorf("failed to write temporary secret file: %w", err)
 	}
-	defer os.Remove(tempFile)
+	defer func() { _ = os.Remove(tempFile) }()
 
 	absKey, _ := filepath.Abs(keyFilePath)
 	cmd := exec.Command(sopsBin, "--encrypt", tempFile)
@@ -195,7 +195,7 @@ func LoadCredentials() (map[string]string, error) {
 	if _, err := os.Stat(keyFile); os.IsNotExist(err) && os.Getenv("SOPS_AGE_KEY") != "" {
 		tempKey := filepath.Join(os.TempDir(), fmt.Sprintf("sops-key-%d.txt", os.Getpid()))
 		_ = os.WriteFile(tempKey, []byte(os.Getenv("SOPS_AGE_KEY")), 0600)
-		defer os.Remove(tempKey)
+		defer func() { _ = os.Remove(tempKey) }()
 		keyFile = tempKey
 	}
 

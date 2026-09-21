@@ -215,7 +215,7 @@ func RunTest(args []string) error {
 		resp, err := httpClient.Get(fmt.Sprintf("http://localhost:%d/health", *port))
 		if err == nil && resp.StatusCode == http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			if strings.Contains(string(body), `"status":"ok"`) {
 				v1OK = true
 				break
@@ -234,7 +234,7 @@ func RunTest(args []string) error {
 		return fmt.Errorf("failed to query root endpoint: %w", err)
 	}
 	bodyBytes, _ := io.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	bodyStr := string(bodyBytes)
 
 	cleanV1 := strings.TrimPrefix(*v1, "v")
@@ -262,7 +262,7 @@ func RunTest(args []string) error {
 		resp, err := httpClient.Get(fmt.Sprintf("http://localhost:%d/", *port))
 		if err == nil && resp.StatusCode == http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			currentContent := string(body)
 			if strings.Contains(currentContent, *v2) || strings.Contains(currentContent, cleanV2) {
 				fmt.Printf("\n[+] Zero-downtime switch verified! Current Response:\n%s\n", currentContent)

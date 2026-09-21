@@ -119,7 +119,7 @@ func RunAnsible(ctx context.Context) error {
 	if err := os.WriteFile(tempFile, []byte(decrypted), 0600); err != nil {
 		return fmt.Errorf("failed to write temporary secrets file: %w", err)
 	}
-	defer os.Remove(tempFile)
+	defer func() { _ = os.Remove(tempFile) }()
 
 	inventoryFile := "ansible/inventory.ini"
 	playbookFile := "ansible/playbook-binary.yml"
@@ -161,7 +161,7 @@ func VerifyApp(ctx context.Context, host string, port int, expectedVersion strin
 
 	client := &http.Client{Timeout: 3 * time.Second}
 	maxAttempts := 30
-	sleepSec := 2 * time.Second
+	sleepInterval := 2 * time.Second
 
 	// 1. Health check
 	fmt.Printf("--> Checking health endpoint (%s)...\n", healthURL)
@@ -179,7 +179,7 @@ func VerifyApp(ctx context.Context, host string, port int, expectedVersion strin
 			}
 		}
 		fmt.Printf("    Attempt %d/%d waiting for Dewy service to become healthy...\n", i, maxAttempts)
-		time.Sleep(sleepSec)
+		time.Sleep(sleepInterval)
 	}
 
 	if !healthOK {
@@ -193,7 +193,7 @@ func VerifyApp(ctx context.Context, host string, port int, expectedVersion strin
 	if err != nil {
 		return fmt.Errorf("failed to request root endpoint: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
