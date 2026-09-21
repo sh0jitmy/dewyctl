@@ -410,3 +410,9 @@ GitHub Actions CI (`.github/workflows/ci.yml`) では、PR 作成時および `m
 | `AWS_ACCESS_KEY_ID` | オブジェクトストレージ アクセスキー ID | さくらクラウド管理画面で発行 |
 | `AWS_SECRET_ACCESS_KEY` | オブジェクトストレージ シークレットアクセスキー | さくらクラウド管理画面で発行 |
 | `SOPS_AGE_KEY` | GitHub Actions 用シークレット（`key.txt` の内容） | `AGE-SECRET-KEY-...` |
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
