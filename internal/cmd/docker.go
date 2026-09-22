@@ -18,7 +18,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -67,24 +66,21 @@ func RunDocker(args []string) error {
 }
 
 func checkCredentialsBeforeSetup() error {
-	keyFile := "key.txt"
-	encFile := "secrets.enc.yml"
-	if _, err := os.Stat(keyFile); os.IsNotExist(err) {
-		return fmt.Errorf("key file %s not found. Please run 'dewyctl config' to set up credentials", keyFile)
-	}
-	if _, err := os.Stat(encFile); os.IsNotExist(err) {
-		return fmt.Errorf("secrets file %s not found. Please run 'dewyctl config' to set up credentials", encFile)
-	}
-	decrypted, err := sops.Decrypt(keyFile, encFile)
+	creds, err := sops.LoadCredentials()
 	if err != nil {
-		return fmt.Errorf("failed to decrypt %s: %w", encFile, err)
+		return fmt.Errorf("failed to load credentials: %w", err)
 	}
-	if strings.Contains(decrypted, "placeholder") {
-		fmt.Println("============================================================")
-		fmt.Println(" [!] Warning: secrets.enc.yml contains placeholders.")
-		fmt.Println("     Dewy needs real Sakura Cloud S3 credentials to poll.")
-		fmt.Println("     Please run 'dewyctl config' if you have not configured them.")
-		fmt.Println("============================================================")
+
+	bucket := creds["s3_bucket"]
+	accessKey := creds["aws_access_key_id"]
+	secretKey := creds["aws_secret_access_key"]
+
+	if bucket == "" || strings.Contains(bucket, "your-bucket-name") || strings.Contains(bucket, "placeholder") ||
+		accessKey == "" || strings.Contains(accessKey, "placeholder") ||
+		secretKey == "" || strings.Contains(secretKey, "placeholder") {
+		return fmt.Errorf("S3 credentials not properly configured (bucket: '%s').\n" +
+			"In CI (GitHub Actions): Please configure Repository Secrets (S3_BUCKET, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and optionally SOPS_AGE_KEY).\n" +
+			"Locally: Please run 'dewyctl config' (or './run.sh config') to set up your credentials", bucket)
 	}
 	return nil
 }

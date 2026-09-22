@@ -191,17 +191,6 @@ func Edit(keyFilePath, encPath string) error {
 func LoadCredentials() (map[string]string, error) {
 	creds := make(map[string]string)
 
-	// Populate from environment variables first
-	envKeys := []string{
-		"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "S3_BUCKET",
-		"S3_ENDPOINT", "S3_REGION", "GITHUB_TOKEN",
-	}
-	for _, k := range envKeys {
-		if v := os.Getenv(k); v != "" {
-			creds[strings.ToLower(k)] = v
-		}
-	}
-
 	keyFile := "key.txt"
 	encFile := "secrets.enc.yml"
 
@@ -213,6 +202,7 @@ func LoadCredentials() (map[string]string, error) {
 		keyFile = tempKey
 	}
 
+	// 1. Try decrypting secrets.enc.yml first
 	if _, err := os.Stat(encFile); err == nil {
 		if _, err := os.Stat(keyFile); err == nil {
 			if decrypted, err := Decrypt(keyFile, encFile); err == nil {
@@ -229,6 +219,28 @@ func LoadCredentials() (map[string]string, error) {
 				}
 			}
 		}
+	}
+
+	// 2. Override with environment variables (env vars have the highest precedence)
+	envKeys := []string{
+		"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "S3_BUCKET",
+		"S3_ENDPOINT", "S3_REGION", "S3_PREFIX", "GITHUB_TOKEN",
+	}
+	for _, k := range envKeys {
+		if v := os.Getenv(k); v != "" {
+			creds[strings.ToLower(k)] = v
+		}
+	}
+
+	// 3. Set standard defaults if not present
+	if creds["s3_endpoint"] == "" {
+		creds["s3_endpoint"] = "https://s3.tky01.sakurastorage.jp"
+	}
+	if creds["s3_region"] == "" {
+		creds["s3_region"] = "jp-east-1"
+	}
+	if creds["s3_prefix"] == "" {
+		creds["s3_prefix"] = "sample-app"
 	}
 
 	return creds, nil
