@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.0.4](https://github.com/sh0jitmy/dewyctl/compare/v0.0.3...v0.0.4) - 2026-09-22
+
+- fix: load credentials from env in dewyctl docker for CI support by @sh0jitmy in https://github.com/sh0jitmy/dewyctl/pull/7
+
 ## [v0.0.2](https://github.com/sh0jitmy/dewyctl/compare/v0.0.1...v0.0.2) - 2026-09-22
 
 - feat: add Dependabot config and inject S3 secrets in tagpr/deploy workflows by @sh0jitmy in https://github.com/sh0jitmy/dewyctl/pull/3
