@@ -1,0 +1,30 @@
+# Compiled binaries
+/app/dewy-app
+/app/app
+/bin/
+
+# GoReleaser output
+/dist/
+
+# SOPS age private key file
+/key.txt
+
+# Secrets files (plain and encrypted local files)
+/secrets.yml
+/secrets.enc.yml
+*.dec.yml
+*.enc.yml
+!secrets.example.yml
+
+# Environment files
+.env
+*.env
+.env.*
+
+# Local run/work directories
+/.dewy/
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/

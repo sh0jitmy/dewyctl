@@ -1,0 +1,15 @@
+[Unit]
+Description=Dewy Container Deployment Service ({{ app_name }})
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=/etc/dewy-container.env
+ExecStart=/usr/local/bin/dewy container --registry 'img://{{ ghcr_image }}' --port {{ container_port }}:8080 --health-path /health --replicas 2
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+creation_rules:
+  - path_regex: secrets(\.enc)?\.yml$
+    key_groups:
+      - age:
+          - age1kl0r02la6pf2rr7kjjq95xvks4ptj42hfjlp2at9g6dejq6l0c5qhsl4ju

@@ -1,0 +1,5 @@
+module github.com/sh0jitmy/dewyctl/app
+
+go 1.26
+
+require github.com/lestrrat-go/server-starter v0.0.0-20210101230921-50cd1900b5bc
