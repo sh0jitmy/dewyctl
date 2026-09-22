@@ -103,6 +103,9 @@ func RunPush(args []string) error {
 	}
 
 	if finalBucket == "" || strings.Contains(finalBucket, "placeholder") {
+		if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
+			return fmt.Errorf("S3 bucket is not configured (current: '%s').\nIn GitHub Actions, please configure the 'S3_BUCKET' repository secret (or SOPS_AGE_KEY with encrypted secrets)", finalBucket)
+		}
 		return fmt.Errorf("S3 bucket is not configured (current: '%s').\nPlease run 'dewyctl config' (or './run.sh config') to set up your S3 bucket and credentials", finalBucket)
 	}
 
@@ -111,6 +114,9 @@ func RunPush(args []string) error {
 		accessKey = creds["aws_access_key_id"]
 	}
 	if accessKey == "" || strings.Contains(accessKey, "placeholder") {
+		if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
+			return fmt.Errorf("AWS_ACCESS_KEY_ID is not configured (or is a placeholder).\nIn GitHub Actions, please configure the 'AWS_ACCESS_KEY_ID' repository secret (or SOPS_AGE_KEY with encrypted secrets)")
+		}
 		return fmt.Errorf("AWS_ACCESS_KEY_ID is not configured (or is a placeholder).\nPlease run 'dewyctl config' (or './run.sh config') to set up your S3 credentials")
 	}
 
@@ -119,6 +125,9 @@ func RunPush(args []string) error {
 		secretKey = creds["aws_secret_access_key"]
 	}
 	if secretKey == "" || strings.Contains(secretKey, "placeholder") {
+		if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
+			return fmt.Errorf("AWS_SECRET_ACCESS_KEY is not configured (or is a placeholder).\nIn GitHub Actions, please configure the 'AWS_SECRET_ACCESS_KEY' repository secret (or SOPS_AGE_KEY with encrypted secrets)")
+		}
 		return fmt.Errorf("AWS_SECRET_ACCESS_KEY is not configured (or is a placeholder).\nPlease run 'dewyctl config' (or './run.sh config') to set up your S3 credentials")
 	}
 
