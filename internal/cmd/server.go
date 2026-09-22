@@ -83,13 +83,22 @@ func RunServer(args []string) error {
 		}
 	}
 
+	finalApp := *appName
+	if finalApp == "" {
+		finalApp = builder.DetectProjectName()
+	}
+
 	finalPrefix := *prefix
 	if finalPrefix == "" {
 		finalPrefix = os.Getenv("S3_PREFIX")
 		if finalPrefix == "" {
 			finalPrefix = creds["s3_prefix"]
 			if finalPrefix == "" {
-				finalPrefix = "dewyctl"
+				if finalApp == "dewyctl" {
+					finalPrefix = "dewyctl"
+				} else {
+					finalPrefix = "sample-app"
+				}
 			}
 		}
 	}
@@ -98,11 +107,6 @@ func RunServer(args []string) error {
 	secretKey := creds["aws_secret_access_key"]
 	if accessKey == "" || secretKey == "" {
 		return fmt.Errorf("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required. Run 'dewyctl config' first")
-	}
-
-	finalApp := *appName
-	if finalApp == "" {
-		finalApp = builder.DetectProjectName()
 	}
 
 	// 3. Resolve artifact name matching current OS and architecture

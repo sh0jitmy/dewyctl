@@ -97,7 +97,11 @@ func RunTest(args []string) error {
 
 	prefix := os.Getenv("S3_PREFIX")
 	if prefix == "" {
-		prefix = "dewyctl"
+		if finalApp == "dewyctl" {
+			prefix = "dewyctl"
+		} else {
+			prefix = "sample-app"
+		}
 	}
 
 	osName := runtime.GOOS

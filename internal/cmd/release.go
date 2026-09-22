@@ -66,7 +66,7 @@ func RunRelease(args []string) error {
 		if finalPrefix == "" {
 			finalPrefix = creds["s3_prefix"]
 			if finalPrefix == "" {
-				finalPrefix = "dewyctl"
+				finalPrefix = "sample-app"
 			}
 		}
 	}

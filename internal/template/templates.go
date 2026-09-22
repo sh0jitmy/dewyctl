@@ -21,6 +21,7 @@ type Config struct {
 	AppName    string
 	Port       string
 	S3Bucket   string
+	S3Prefix   string
 	S3Endpoint string
 	S3Region   string
 	BinaryDir  string
@@ -30,6 +31,10 @@ type Config struct {
 
 // SystemdServiceTemplate returns a systemd service unit file for Dewy binary deployment.
 func SystemdServiceTemplate(cfg Config) string {
+	prefix := cfg.S3Prefix
+	if prefix == "" {
+		prefix = "sample-app"
+	}
 	tmpl := `[Unit]
 Description=Dewy Binary Deployment Service ({{APP_NAME}})
 After=network.target
@@ -39,7 +44,7 @@ Type=simple
 User=root
 WorkingDirectory={{BINARY_DIR}}
 EnvironmentFile=/etc/dewy-binary.env
-ExecStart=/usr/local/bin/dewy server --registry 's3://{{S3_REGION}}/{{S3_BUCKET}}/dewyctl?endpoint={{S3_ENDPOINT}}&artifact={{APP_NAME}}_linux_amd64.tar.gz' --port {{PORT}} -- {{BINARY_DIR}}/current/{{APP_NAME}}
+ExecStart=/usr/local/bin/dewy server --registry 's3://{{S3_REGION}}/{{S3_BUCKET}}/{{S3_PREFIX}}?endpoint={{S3_ENDPOINT}}&artifact={{APP_NAME}}_linux_amd64.tar.gz' --port {{PORT}} -- {{BINARY_DIR}}/current/{{APP_NAME}}
 Restart=always
 RestartSec=5
 
@@ -51,6 +56,7 @@ WantedBy=multi-user.target
 		"{{BINARY_DIR}}", cfg.BinaryDir,
 		"{{S3_REGION}}", cfg.S3Region,
 		"{{S3_BUCKET}}", cfg.S3Bucket,
+		"{{S3_PREFIX}}", prefix,
 		"{{S3_ENDPOINT}}", cfg.S3Endpoint,
 		"{{PORT}}", cfg.Port,
 	)
@@ -105,7 +111,7 @@ blobs:
     region: "{{ .Env.S3_REGION }}"
     endpoint: "{{ .Env.S3_ENDPOINT }}"
     # Dewy S3 registry path convention: <prefix>/<semver>/<artifact>
-    directory: "{{ if .Env.S3_PREFIX }}{{ .Env.S3_PREFIX }}{{ else }}dewyctl{{ end }}/{{ .Tag }}"
+    directory: "{{ if .Env.S3_PREFIX }}{{ .Env.S3_PREFIX }}{{ else }}sample-app{{ end }}/{{ .Tag }}"
     ids:
       - default
 `

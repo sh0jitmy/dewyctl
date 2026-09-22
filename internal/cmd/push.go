@@ -36,7 +36,7 @@ func RunPush(args []string) error {
 	bucket := fs.String("bucket", "", "S3 bucket name (or via S3_BUCKET env)")
 	endpoint := fs.String("endpoint", "", "S3 endpoint URL (or via S3_ENDPOINT env, default: https://s3.tky01.sakurastorage.jp)")
 	region := fs.String("region", "", "S3 region (or via S3_REGION env, default: jp-east-1)")
-	prefix := fs.String("prefix", "", "S3 prefix/directory (default: dewyctl or S3_PREFIX env)")
+	prefix := fs.String("prefix", "", "S3 prefix/directory (default: sample-app for app, dewyctl for dewyctl, or via S3_PREFIX env)")
 	targetOS := fs.String("os", "", "Target OS (e.g. linux, darwin)")
 	targetArch := fs.String("arch", "", "Target architecture (e.g. amd64, arm64)")
 	allPlatforms := fs.Bool("all-platforms", false, "Build and upload for all standard platforms (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64)")
@@ -100,7 +100,11 @@ func RunPush(args []string) error {
 		if finalPrefix == "" {
 			finalPrefix = creds["s3_prefix"]
 			if finalPrefix == "" {
-				finalPrefix = "dewyctl"
+				if *appName == "dewyctl" {
+					finalPrefix = "dewyctl"
+				} else {
+					finalPrefix = "sample-app"
+				}
 			}
 		}
 	}
