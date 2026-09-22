@@ -10,6 +10,7 @@ dewy_version: "2.14.1"
 github_owner: "sh0jitmy"
 github_repo: "dewyctl"
 ghcr_image: "ghcr.io/{{ github_owner }}/{{ github_repo }}"
+github_token: ""
 
 # S3 / Sakura Object Storage settings (Used for binary mode)
 s3_bucket: "your-bucket-name"
