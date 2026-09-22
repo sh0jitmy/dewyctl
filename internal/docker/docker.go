@@ -206,6 +206,8 @@ func VerifyApp(ctx context.Context, host string, port int, expectedVersion strin
 	}
 
 	if !healthOK {
+		fmt.Println("\n[!] Health check failed. Fetching Dewy systemd service logs for diagnosis:")
+		_ = ShowLogs(ctx, 100)
 		return fmt.Errorf("health check timed out after %d attempts", maxAttempts)
 	}
 
@@ -214,6 +216,8 @@ func VerifyApp(ctx context.Context, host string, port int, expectedVersion strin
 	req, _ := http.NewRequestWithContext(ctx, "GET", rootURL, nil)
 	resp, err := client.Do(req)
 	if err != nil {
+		fmt.Println("\n[!] Failed to request root endpoint. Fetching Dewy systemd service logs for diagnosis:")
+		_ = ShowLogs(ctx, 100)
 		return fmt.Errorf("failed to request root endpoint: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
@@ -233,6 +237,9 @@ func VerifyApp(ctx context.Context, host string, port int, expectedVersion strin
 		fmt.Printf("[OK] Version verified successfully! (Matches %s)\n", expectedVersion)
 		return nil
 	}
+
+	fmt.Println("\n[!] Version mismatch. Fetching Dewy systemd service logs for diagnosis:")
+	_ = ShowLogs(ctx, 100)
 
 	return fmt.Errorf("version mismatch! Expected version '%s' not found in response", expectedVersion)
 }
