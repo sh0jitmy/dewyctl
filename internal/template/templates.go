@@ -39,7 +39,7 @@ Type=simple
 User=root
 WorkingDirectory={{BINARY_DIR}}
 EnvironmentFile=/etc/dewy-binary.env
-ExecStart=/usr/local/bin/dewy server --registry 's3://{{S3_REGION}}/{{S3_BUCKET}}/app?endpoint={{S3_ENDPOINT}}&artifact={{APP_NAME}}_linux_amd64.tar.gz' --port {{PORT}} -- {{BINARY_DIR}}/current/{{APP_NAME}}
+ExecStart=/usr/local/bin/dewy server --registry 's3://{{S3_REGION}}/{{S3_BUCKET}}/dewyctl?endpoint={{S3_ENDPOINT}}&artifact={{APP_NAME}}_linux_amd64.tar.gz' --port {{PORT}} -- {{BINARY_DIR}}/current/{{APP_NAME}}
 Restart=always
 RestartSec=5
 
@@ -105,7 +105,7 @@ blobs:
     region: "{{ .Env.S3_REGION }}"
     endpoint: "{{ .Env.S3_ENDPOINT }}"
     # Dewy S3 registry path convention: <prefix>/<semver>/<artifact>
-    directory: "app/{{ .Tag }}"
+    directory: "{{ if .Env.S3_PREFIX }}{{ .Env.S3_PREFIX }}{{ else }}dewyctl{{ end }}/{{ .Tag }}"
     ids:
       - default
 `

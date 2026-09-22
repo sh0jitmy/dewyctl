@@ -408,6 +408,7 @@ GitHub Actions CI (`.github/workflows/ci.yml`) では、PR 作成時および `m
 | `S3_ENDPOINT` | さくらのクラウド オブジェクトストレージ エンドポイント | `https://s3.tky01.sakurastorage.jp` (東京) |
 | `S3_REGION` | S3 リージョン名 | `jp-east-1` |
 | `S3_BUCKET` | リリースバイナリ保管用バケット名 | 例: `my-dewy-releases` |
+| `S3_PREFIX` | S3 パスプレフィックス（デフォルト: `dewyctl`） | `dewyctl` |
 | `AWS_ACCESS_KEY_ID` | オブジェクトストレージ アクセスキー ID | さくらクラウド管理画面で発行 |
 | `AWS_SECRET_ACCESS_KEY` | オブジェクトストレージ シークレットアクセスキー | さくらクラウド管理画面で発行 |
 | `SOPS_AGE_KEY` | GitHub Actions 用シークレット（`key.txt` の内容） | `AGE-SECRET-KEY-...` |

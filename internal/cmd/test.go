@@ -95,11 +95,16 @@ func RunTest(args []string) error {
 		appDir = "app"
 	}
 
+	prefix := os.Getenv("S3_PREFIX")
+	if prefix == "" {
+		prefix = "dewyctl"
+	}
+
 	osName := runtime.GOOS
 	archName := runtime.GOARCH
 	artifactName := fmt.Sprintf("%s_%s_%s.tar.gz", finalApp, osName, archName)
-	registryURL := fmt.Sprintf("s3://%s/%s/app?endpoint=%s&artifact=%s",
-		region, bucket, endpoint, artifactName)
+	registryURL := fmt.Sprintf("s3://%s/%s/%s?endpoint=%s&artifact=%s",
+		region, bucket, prefix, endpoint, artifactName)
 
 	testDir, err := os.MkdirTemp("", "dewy-e2e-test-*")
 	if err != nil {
@@ -113,17 +118,16 @@ func RunTest(args []string) error {
 
 	fmt.Println("============================================================")
 	fmt.Println("       Starting Dewy Zero-Downtime E2E Automation Test")
-	fmt.Println("============================================================")
-	fmt.Printf(" Target App:      %s (%s/%s)\n", finalApp, osName, archName)
+	fmt.Printf(" App:             %s\n", finalApp)
 	fmt.Printf(" S3 Bucket:       %s\n", bucket)
+	fmt.Printf(" S3 Prefix:       %s\n", prefix)
+	fmt.Printf(" Target Artifact: %s\n", artifactName)
 	fmt.Printf(" Registry URL:    %s\n", registryURL)
-	fmt.Printf(" Initial Version: %s\n", *v1)
-	fmt.Printf(" Upgrade Version: %s\n", *v2)
-	fmt.Printf(" Test WorkDir:    %s\n", testDir)
 	fmt.Println("============================================================")
 
+	// Helper to build and upload release
 	uploadRelease := func(version string) error {
-		fmt.Printf("\n--> [Build & Upload] Compiling %s for %s/%s and pushing to S3...\n", version, osName, archName)
+		fmt.Printf("\n--> Building and uploading %s release...\n", version)
 		data, archiveName, err := builder.BuildAndArchive(builder.BuildOptions{
 			AppName:    finalApp,
 			AppDir:     appDir,
@@ -135,7 +139,7 @@ func RunTest(args []string) error {
 			return fmt.Errorf("build failed: %w", err)
 		}
 
-		s3Key := fmt.Sprintf("app/%s/%s", version, archiveName)
+		s3Key := fmt.Sprintf("%s/%s/%s", prefix, version, archiveName)
 		uploadCtx, uploadCancel := context.WithTimeout(ctx, 30*time.Second)
 		defer uploadCancel()
 

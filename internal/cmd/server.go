@@ -38,7 +38,7 @@ func RunServer(args []string) error {
 	bucket := fs.String("bucket", "", "S3 bucket name (default: from secrets/env)")
 	endpoint := fs.String("endpoint", "", "S3 endpoint URL (default: from secrets/env)")
 	region := fs.String("region", "", "S3 region (default: from secrets/env)")
-	prefix := fs.String("prefix", "app", "S3 prefix (default: app)")
+	prefix := fs.String("prefix", "", "S3 prefix (default: dewyctl or S3_PREFIX env)")
 	workDir := fs.String("work-dir", ".dewy", "Working directory for releases and symlinks")
 
 	if err := fs.Parse(args); err != nil {
@@ -83,6 +83,17 @@ func RunServer(args []string) error {
 		}
 	}
 
+	finalPrefix := *prefix
+	if finalPrefix == "" {
+		finalPrefix = os.Getenv("S3_PREFIX")
+		if finalPrefix == "" {
+			finalPrefix = creds["s3_prefix"]
+			if finalPrefix == "" {
+				finalPrefix = "dewyctl"
+			}
+		}
+	}
+
 	accessKey := creds["aws_access_key_id"]
 	secretKey := creds["aws_secret_access_key"]
 	if accessKey == "" || secretKey == "" {
@@ -102,7 +113,7 @@ func RunServer(args []string) error {
 	// 4. Construct Dewy S3 registry URL
 	// Format: s3://<region>/<bucket>/<prefix>?endpoint=<endpoint>&artifact=<artifact>
 	registryURL := fmt.Sprintf("s3://%s/%s/%s?endpoint=%s&artifact=%s",
-		finalRegion, finalBucket, *prefix, finalEndpoint, artifactName)
+		finalRegion, finalBucket, finalPrefix, finalEndpoint, artifactName)
 
 	absWorkDir, err := filepath.Abs(*workDir)
 	if err != nil {

@@ -13,6 +13,7 @@ ghcr_image: "ghcr.io/{{ github_owner }}/{{ github_repo }}"
 
 # S3 / Sakura Object Storage settings (Used for binary mode)
 s3_bucket: "your-bucket-name"
+s3_prefix: "dewyctl"
 s3_endpoint: "https://s3.tky01.sakurastorage.jp"
 s3_region: "jp-east-1"
 
