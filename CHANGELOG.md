@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.0.5](https://github.com/sh0jitmy/dewyctl/compare/v0.0.4...v0.0.5) - 2026-09-22
+
+- fix: resolve architecture name mismatch (amd64 vs x86_64) in dewy service artifact by @sh0jitmy in https://github.com/sh0jitmy/dewyctl/pull/9
+
 ## [v0.0.4](https://github.com/sh0jitmy/dewyctl/compare/v0.0.3...v0.0.4) - 2026-09-22
 
 - fix: load credentials from env in dewyctl docker for CI support by @sh0jitmy in https://github.com/sh0jitmy/dewyctl/pull/7
