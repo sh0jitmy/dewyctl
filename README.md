@@ -408,11 +408,31 @@ GitHub Actions CI (`.github/workflows/ci.yml`) では、PR 作成時および `m
 | `S3_ENDPOINT` | さくらのクラウド オブジェクトストレージ エンドポイント | `https://s3.tky01.sakurastorage.jp` (東京) |
 | `S3_REGION` | S3 リージョン名 | `jp-east-1` |
 | `S3_BUCKET` | リリースバイナリ保管用バケット名 | 例: `my-dewy-releases` |
+| `S3_PREFIX` | S3 パスプレフィックス（アプリ毎に指定可能、デフォルト: `sample-app` / `dewyctl`） | `sample-app` |
 | `AWS_ACCESS_KEY_ID` | オブジェクトストレージ アクセスキー ID | さくらクラウド管理画面で発行 |
 | `AWS_SECRET_ACCESS_KEY` | オブジェクトストレージ シークレットアクセスキー | さくらクラウド管理画面で発行 |
 | `SOPS_AGE_KEY` | GitHub Actions 用シークレット（`key.txt` の内容） | `AGE-SECRET-KEY-...` |
 
+### GitHub Actions Secrets の設定
+
+GitHub Actions（`tagpr` によるタグ自動作成後の S3 自動リリースや `deploy.yml`）を動作させるには、GitHub リポジトリの **Settings -> Secrets and variables -> Actions** に以下のシークレットを登録します（GitHub CLI を使って設定することも可能です）：
+
+```bash
+# 必須: S3 / さくらのクラウド オブジェクトストレージ設定
+gh secret set S3_BUCKET -b "your-bucket-name"
+gh secret set AWS_ACCESS_KEY_ID -b "your-access-key-id"
+gh secret set AWS_SECRET_ACCESS_KEY -b "your-secret-access-key"
+
+# 任意: SOPS による暗号化シークレット管理を利用する場合
+gh secret set SOPS_AGE_KEY < key.txt
+
+# 任意: デフォルト (東京リージョン) 以外を利用する場合
+gh secret set S3_ENDPOINT -b "https://s3.tky01.sakurastorage.jp"
+gh secret set S3_REGION -b "jp-east-1"
+```
+
 ---
+
 
 ## 📄 License
 

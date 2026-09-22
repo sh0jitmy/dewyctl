@@ -30,6 +30,7 @@ import (
 func RunRelease(args []string) error {
 	fs := flag.NewFlagSet("release", flag.ContinueOnError)
 	version := fs.String("version", "", "Semantic release version tag (e.g. v0.1.0)")
+	prefix := fs.String("prefix", "", "S3 prefix/directory (default: dewyctl or S3_PREFIX env)")
 	skipPublish := fs.Bool("skip-publish", false, "Skip S3 upload and only build archives")
 	useFallback := fs.Bool("builtin", false, "Use dewyctl built-in cross-compiler instead of GoReleaser")
 
@@ -59,6 +60,16 @@ func RunRelease(args []string) error {
 	if region == "" {
 		region = "jp-east-1"
 	}
+	finalPrefix := *prefix
+	if finalPrefix == "" {
+		finalPrefix = os.Getenv("S3_PREFIX")
+		if finalPrefix == "" {
+			finalPrefix = creds["s3_prefix"]
+			if finalPrefix == "" {
+				finalPrefix = "sample-app"
+			}
+		}
+	}
 	accessKey := creds["aws_access_key_id"]
 	secretKey := creds["aws_secret_access_key"]
 
@@ -78,6 +89,7 @@ func RunRelease(args []string) error {
 	if region != "" {
 		_ = os.Setenv("S3_REGION", region)
 	}
+	_ = os.Setenv("S3_PREFIX", finalPrefix)
 
 	// 2. Check if GoReleaser is available
 	goreleaserBin, goreleaserErr := exec.LookPath("goreleaser")
@@ -92,6 +104,7 @@ func RunRelease(args []string) error {
 			"--bucket", bucket,
 			"--endpoint", endpoint,
 			"--region", region,
+			"--prefix", finalPrefix,
 			"--all-platforms",
 		})
 	}
@@ -100,6 +113,7 @@ func RunRelease(args []string) error {
 	fmt.Println("============================================================")
 	fmt.Printf(" Running GoReleaser Release (%s)\n", ver)
 	fmt.Printf(" S3 Bucket:   %s\n", bucket)
+	fmt.Printf(" S3 Prefix:   %s\n", finalPrefix)
 	fmt.Printf(" S3 Endpoint: %s\n", endpoint)
 	fmt.Println("============================================================")
 
@@ -115,6 +129,7 @@ func RunRelease(args []string) error {
 	cmd := exec.CommandContext(ctx, goreleaserBin, cmdArgs...)
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("S3_BUCKET=%s", bucket),
+		fmt.Sprintf("S3_PREFIX=%s", finalPrefix),
 		fmt.Sprintf("S3_REGION=%s", region),
 		fmt.Sprintf("S3_ENDPOINT=%s", endpoint),
 		fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", accessKey),

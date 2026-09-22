@@ -38,7 +38,7 @@ blobs:
     region: "{{ .Env.S3_REGION }}"
     endpoint: "{{ .Env.S3_ENDPOINT }}"
     # Dewy S3 registry path convention: <prefix>/<semver>/<artifact>
-    directory: "app/{{ .Tag }}"
+    directory: "{{ if .Env.S3_PREFIX }}{{ .Env.S3_PREFIX }}{{ else }}sample-app{{ end }}/{{ .Tag }}"
     # Match the builds id
     ids:
       - default

@@ -189,7 +189,7 @@ Type=simple
 User=root
 WorkingDirectory={{ app_binary_dest_dir }}
 EnvironmentFile=/etc/dewy-binary.env
-ExecStart=/usr/local/bin/dewy server --registry 's3://{{ s3_region }}/{{ s3_bucket }}/app?endpoint={{ s3_endpoint }}&artifact={{ app_name }}_linux_{{ dewy_arch }}.tar.gz' --port {{ binary_port }} -- {{ app_binary_dest_dir }}/current/{{ app_name }}
+ExecStart=/usr/local/bin/dewy server --registry 's3://{{ s3_region }}/{{ s3_bucket }}/{{ s3_prefix | default("sample-app") }}?endpoint={{ s3_endpoint }}&artifact={{ app_name }}_linux_{{ dewy_arch }}.tar.gz' --port {{ binary_port }} -- {{ app_binary_dest_dir }}/current/{{ app_name }}
 Restart=always
 RestartSec=5
 

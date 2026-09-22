@@ -36,7 +36,7 @@ func RunPush(args []string) error {
 	bucket := fs.String("bucket", "", "S3 bucket name (or via S3_BUCKET env)")
 	endpoint := fs.String("endpoint", "", "S3 endpoint URL (or via S3_ENDPOINT env, default: https://s3.tky01.sakurastorage.jp)")
 	region := fs.String("region", "", "S3 region (or via S3_REGION env, default: jp-east-1)")
-	prefix := fs.String("prefix", "app", "S3 prefix/directory (default: app)")
+	prefix := fs.String("prefix", "", "S3 prefix/directory (default: sample-app for app, dewyctl for dewyctl, or via S3_PREFIX env)")
 	targetOS := fs.String("os", "", "Target OS (e.g. linux, darwin)")
 	targetArch := fs.String("arch", "", "Target architecture (e.g. amd64, arm64)")
 	allPlatforms := fs.Bool("all-platforms", false, "Build and upload for all standard platforms (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64)")
@@ -94,6 +94,21 @@ func RunPush(args []string) error {
 		}
 	}
 
+	finalPrefix := *prefix
+	if finalPrefix == "" {
+		finalPrefix = os.Getenv("S3_PREFIX")
+		if finalPrefix == "" {
+			finalPrefix = creds["s3_prefix"]
+			if finalPrefix == "" {
+				if *appName == "dewyctl" {
+					finalPrefix = "dewyctl"
+				} else {
+					finalPrefix = "sample-app"
+				}
+			}
+		}
+	}
+
 	finalBucket := *bucket
 	if finalBucket == "" {
 		finalBucket = os.Getenv("S3_BUCKET")
@@ -103,6 +118,9 @@ func RunPush(args []string) error {
 	}
 
 	if finalBucket == "" || strings.Contains(finalBucket, "placeholder") {
+		if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
+			return fmt.Errorf("S3 bucket is not configured (current: '%s').\nIn GitHub Actions, please configure the 'S3_BUCKET' repository secret (or SOPS_AGE_KEY with encrypted secrets)", finalBucket)
+		}
 		return fmt.Errorf("S3 bucket is not configured (current: '%s').\nPlease run 'dewyctl config' (or './run.sh config') to set up your S3 bucket and credentials", finalBucket)
 	}
 
@@ -111,6 +129,9 @@ func RunPush(args []string) error {
 		accessKey = creds["aws_access_key_id"]
 	}
 	if accessKey == "" || strings.Contains(accessKey, "placeholder") {
+		if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
+			return fmt.Errorf("AWS_ACCESS_KEY_ID is not configured (or is a placeholder).\nIn GitHub Actions, please configure the 'AWS_ACCESS_KEY_ID' repository secret (or SOPS_AGE_KEY with encrypted secrets)")
+		}
 		return fmt.Errorf("AWS_ACCESS_KEY_ID is not configured (or is a placeholder).\nPlease run 'dewyctl config' (or './run.sh config') to set up your S3 credentials")
 	}
 
@@ -119,6 +140,9 @@ func RunPush(args []string) error {
 		secretKey = creds["aws_secret_access_key"]
 	}
 	if secretKey == "" || strings.Contains(secretKey, "placeholder") {
+		if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
+			return fmt.Errorf("AWS_SECRET_ACCESS_KEY is not configured (or is a placeholder).\nIn GitHub Actions, please configure the 'AWS_SECRET_ACCESS_KEY' repository secret (or SOPS_AGE_KEY with encrypted secrets)")
+		}
 		return fmt.Errorf("AWS_SECRET_ACCESS_KEY is not configured (or is a placeholder).\nPlease run 'dewyctl config' (or './run.sh config') to set up your S3 credentials")
 	}
 
@@ -169,7 +193,7 @@ func RunPush(args []string) error {
 		}
 
 		// 2. Dewy S3 key convention: <prefix>/<semver>/<artifact>
-		s3Key := fmt.Sprintf("%s/%s/%s", *prefix, ver, archiveName)
+		s3Key := fmt.Sprintf("%s/%s/%s", finalPrefix, ver, archiveName)
 
 		// 3. Upload to Object Storage
 		err = s3.UploadArtifact(ctx, s3.UploadOptions{
