@@ -2,6 +2,7 @@
 - name: Set architecture variable
   set_fact:
     dewy_arch: "{{ 'x86_64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'arm64' }}"
+    app_arch: "{{ 'amd64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'arm64' }}"
 
 - name: Check if Dewy is installed
   stat:

@@ -97,6 +97,7 @@ app_binary_dest_dir: "%s"
 - name: Set architecture variable
   set_fact:
     dewy_arch: "{{ 'x86_64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'arm64' }}"
+    app_arch: "{{ 'amd64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'arm64' }}"
 
 - name: Check if Dewy is installed
   stat:
@@ -189,7 +190,7 @@ Type=simple
 User=root
 WorkingDirectory={{ app_binary_dest_dir }}
 EnvironmentFile=/etc/dewy-binary.env
-ExecStart=/usr/local/bin/dewy server --registry 's3://{{ s3_region }}/{{ s3_bucket }}/{{ s3_prefix | default("sample-app") }}?endpoint={{ s3_endpoint }}&artifact={{ app_name }}_linux_{{ dewy_arch }}.tar.gz' --port {{ binary_port }} -- {{ app_binary_dest_dir }}/current/{{ app_name }}
+ExecStart=/usr/local/bin/dewy server --interval 5 --log-level info --registry 's3://{{ s3_region }}/{{ s3_bucket }}/{{ s3_prefix | default("sample-app") }}?endpoint={{ s3_endpoint }}&artifact={{ app_name }}_linux_{{ app_arch }}.tar.gz' --port {{ binary_port }} -- {{ app_binary_dest_dir }}/current/{{ app_name }}
 Restart=always
 RestartSec=5
 
